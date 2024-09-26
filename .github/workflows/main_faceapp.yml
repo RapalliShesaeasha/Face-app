@@ -16,21 +16,34 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      # Build Docker image
       - name: Build Docker image
         run: |
           docker build . -t faceapp:latest
 
+      # List Docker images to verify build
+      - name: List Docker images
+        run: |
+          docker images
+
+      # Login to Azure Container Registry (ACR)
       - name: Login to Azure Container Registry
         uses: azure/docker-login@v1
         with:
           username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
           password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
-          login-server: ${{ secrets.AZURE_REGISTRY_NAME }}
+          login-server: ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io
 
+      # Tag and Push Docker image to ACR
       - name: Push Docker image to Azure Container Registry
         run: |
-          docker tag faceapp:latest ${{ secrets.AZURE_REGISTRY_NAME }}/faceapp:latest
-          docker push ${{ secrets.AZURE_REGISTRY_NAME }}/faceapp:latest
+          docker tag faceapp:latest ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/faceapp:latest
+          docker push ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/faceapp:latest
+
+      # List images in ACR to verify push
+      - name: List images in Azure Container Registry
+        run: |
+          az acr repository list --name ${{ secrets.AZURE_REGISTRY_NAME }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -39,9 +52,10 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
+      id-token: write  # This is required for requesting the JWT
 
     steps:
+      # Login to Azure
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -49,10 +63,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_6ABDDA8ADD734522AFD89F7BC11F47EC }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_550C2BE7B0BB4AB693844F8D267DB225 }}
 
+      # Deploy to Azure Web App using Docker
       - name: Deploy to Azure Web App using Docker
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2  # Use the latest version
+        uses: azure/webapps-deploy@v2
         with:
           app-name: 'faceapp'
           slot-name: 'Production'  # Optional, set to 'Production' or your specified slot
-          images: ${{ secrets.AZURE_REGISTRY_NAME }}/faceapp:latest
+          images: ${{ secrets.AZURE_REGISTRY_NAME }}.azurecr.io/faceapp:latest
