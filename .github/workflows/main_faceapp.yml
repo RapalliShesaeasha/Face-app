@@ -51,7 +51,7 @@ jobs:
 
       - name: Deploy to Azure Web App using Docker
         id: deploy-to-webapp
-        uses: azure/webapps-container-deploy@v2
+        uses: azure/webapps-container-deploy@v3
         with:
           app-name: 'faceapp'
           container-image: ${{ secrets.AZURE_REGISTRY_NAME }}/faceapp:latest
