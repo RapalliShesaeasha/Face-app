@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build --if-present
 
 # Expose the port your app runs on
-EXPOSE 3000
+EXPOSE 8080
 
 # Command to run your application
 CMD [ "npm", "start" ]
