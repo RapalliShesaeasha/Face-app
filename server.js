@@ -15,6 +15,11 @@ app.use(express.json({ limit: '10mb' })); // Increase limit here
 
 // Routes
 app.use('/api/users', userRoutes);
+// Test Route
+app.get('/api/test', (req, res) => {
+  res.status(200).json({ message: 'The server is running and this is a test route!' });
+});
+
 
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
